@@ -1,4 +1,4 @@
-// Copyright 2015 CNI authors
+// Copyright 2018 CNI authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,128 +15,128 @@
 package main
 
 import (
+    "encoding/json"
     "fmt"
     "net"
-    "strings"
-
-    //"github.com/containernetworking/plugins/plugins/ipam/host-local/backend/allocator"
-    "github.com/containernetworking/plugins/plugins/ipam/host-local/backend/disk"
 
     "github.com/containernetworking/cni/pkg/skel"
     "github.com/containernetworking/cni/pkg/types"
     "github.com/containernetworking/cni/pkg/types/current"
     "github.com/containernetworking/cni/pkg/version"
+
+    types020 "github.com/containernetworking/cni/pkg/types/020"
 )
+
+// The top-level network config - IPAM plugins are passed the full configuration
+// of the calling plugin, not just the IPAM section.
+type Net struct {
+    Name       string      `json:"name"`
+    CNIVersion string      `json:"cniVersion"`
+    IPAM       *IPAMConfig `json:"ipam"`
+}
+
+type IPAMConfig struct {
+    Name      string
+    Type      string         `json:"type"`
+    Routes    []*types.Route `json:"routes"`
+    Addresses []Address      `json:"addresses"`
+    DNS       types.DNS      `json:"dns"`
+}
+
+type Address struct {
+    AddressStr string `json:"address"`
+    Gateway    net.IP `json:"gateway,omitempty"`
+    Address    net.IPNet
+    Version    string
+}
 
 func main() {
     skel.PluginMain(cmdAdd, cmdDel, version.All)
 }
 
+// canonicalizeIP makes sure a provided ip is in standard form
+func canonicalizeIP(ip *net.IP) error {
+    if ip.To4() != nil {
+        *ip = ip.To4()
+        return nil
+    } else if ip.To16() != nil {
+        *ip = ip.To16()
+        return nil
+    }
+    return fmt.Errorf("IP %s not v4 nor v6", *ip)
+}
+
+// NewIPAMConfig creates a NetworkConfig from the given network name.
+func LoadIPAMConfig(bytes []byte, envArgs string) (*IPAMConfig, string, error) {
+    n := Net{}
+    if err := json.Unmarshal(bytes, &n); err != nil {
+        return nil, "", err
+    }
+
+    if n.IPAM == nil {
+        return nil, "", fmt.Errorf("IPAM config missing 'ipam' key")
+    }
+
+    // Validate all ranges
+    numV4 := 0
+    numV6 := 0
+    for i := range n.IPAM.Addresses {
+        ip, addr, err := net.ParseCIDR(n.IPAM.Addresses[i].AddressStr)
+        if err != nil {
+            return nil, "", fmt.Errorf("invalid CIDR %s: %s", n.IPAM.Addresses[i].AddressStr, err)
+        }
+        n.IPAM.Addresses[i].Address = *addr
+        n.IPAM.Addresses[i].Address.IP = ip
+
+        if err := canonicalizeIP(&n.IPAM.Addresses[i].Address.IP); err != nil {
+            return nil, "", fmt.Errorf("invalid address %d: %s", i, err)
+        }
+
+        if n.IPAM.Addresses[i].Address.IP.To4() != nil {
+            n.IPAM.Addresses[i].Version = "4"
+            numV4++
+        } else {
+            n.IPAM.Addresses[i].Version = "6"
+            numV6++
+        }
+    }
+
+    // CNI spec 0.2.0 and below supported only one v4 and v6 address
+    if numV4 > 1 || numV6 > 1 {
+        for _, v := range types020.SupportedVersions {
+            if n.CNIVersion == v {
+                return nil, "", fmt.Errorf("CNI version %v does not support more than 1 address per family", n.CNIVersion)
+            }
+        }
+    }
+
+    // Copy net name into IPAM so not to drag Net struct around
+    n.IPAM.Name = n.Name
+
+    return n.IPAM, n.CNIVersion, nil
+}
+
 func cmdAdd(args *skel.CmdArgs) error {
-    // generate result & setting IP
-    ipamConf, confVersion, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
+    ipamConf, confVersion, err := LoadIPAMConfig(args.StdinData, args.Args)
     if err != nil {
         return err
     }
 
     result := &current.Result{}
-
-    if ipamConf.ResolvConf != "" {
-        dns, err := parseResolvConf(ipamConf.ResolvConf)
-        if err != nil {
-            return err
-        }
-        result.DNS = *dns
-    }
-
-    store, err := disk.New(ipamConf.Name, ipamConf.DataDir)
-    if err != nil {
-        return err
-    }
-    defer store.Close()
-
-    // Keep the allocators we used, so we can release all IPs if an error
-    // occurs after we start allocating
-    allocs := []*allocator.IPAllocator{}
-
-    // Store all requested IPs in a map, so we can easily remove ones we use
-    // and error if some remain
-    //requestedIPs := map[string]net.IP{} //net.IP cannot be a key
-
-    /*for _, ip := range ipamConf.IPArgs {
-        requestedIPs[ip.String()] = ip
-    }*/
-
-    for idx, rangeset := range ipamConf.Ranges {
-        allocator := allocator.NewIPAllocator(&rangeset, store, idx)
-
-        // Check to see if there are any custom IPs requested in this range.
-        var requestedIP net.IP
-        for k, ip := range requestedIPs {
-            if rangeset.Contains(ip) {
-                requestedIP = ip
-                delete(requestedIPs, k)
-                break
-            }
-        }
-
-        ipConf, err := allocator.Get(args.ContainerID, requestedIP)
-        if err != nil {
-            // Deallocate all already allocated IPs
-            for _, alloc := range allocs {
-                _ = alloc.Release(args.ContainerID)
-            }
-            return fmt.Errorf("failed to allocate for range %d: %v", idx, err)
-        }
-
-        allocs = append(allocs, allocator)
-
-        result.IPs = append(result.IPs, ipConf)
-    }
-
-    // If an IP was requested that wasn't fulfilled, fail
-    if len(requestedIPs) != 0 {
-        for _, alloc := range allocs {
-            _ = alloc.Release(args.ContainerID)
-        }
-        errstr := "failed to allocate all requested IPs:"
-        for _, ip := range requestedIPs {
-            errstr = errstr + " " + ip.String()
-        }
-        return fmt.Errorf(errstr)
+    result.DNS = ipamConf.DNS
+    result.Routes = ipamConf.Routes
+    for _, v := range ipamConf.Addresses {
+        result.IPs = append(result.IPs, &current.IPConfig{
+            Version: v.Version,
+            Address: v.Address,
+            Gateway: v.Gateway})
     }
 
     result.Routes = ipamConf.Routes
-
     return types.PrintResult(result, confVersion)
 }
 
 func cmdDel(args *skel.CmdArgs) error {
-    ipamConf, _, err := allocator.LoadIPAMConfig(args.StdinData, args.Args)
-    if err != nil {
-        return err
-    }
-
-    store, err := disk.New(ipamConf.Name, ipamConf.DataDir)
-    if err != nil {
-        return err
-    }
-    defer store.Close()
-
-    // Loop through all ranges, releasing all IPs, even if an error occurs
-    var errors []string
-    for idx, rangeset := range ipamConf.Ranges {
-        ipAllocator := allocator.NewIPAllocator(&rangeset, store, idx)
-
-        err := ipAllocator.Release(args.ContainerID)
-        if err != nil {
-            errors = append(errors, err.Error())
-        }
-    }
-
-    if errors != nil {
-        return fmt.Errorf(strings.Join(errors, ";"))
-    }
+    // Nothing required because of no resource allocation in static plugin.
     return nil
 }
-
