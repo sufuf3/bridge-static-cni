@@ -20,7 +20,7 @@ export GO="${GO:-go}"
 mkdir -p "${PWD}/bin"
 
 echo "Building plugins"
-PLUGINS="bridge-static-cni ipam/*"
+PLUGINS="bridge-static ipam/static-ip"
 for d in $PLUGINS; do
 	if [ -d "$d" ]; then
 		plugin="$(basename "$d")"

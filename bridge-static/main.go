@@ -36,17 +36,18 @@ import (
 	"github.com/vishvananda/netlink"
 )
 
-const defaultBrName = "bst0"
+const defaultBrName = "bs0"
 
 type NetConf struct {
 	types.NetConf
-	BrName      string `json:"BridgeStatic"`
-	IsGW        bool   `json:"isGateway"`
-	IsDefaultGW bool   `json:"isDefaultGateway"`
-	IPMasq      bool   `json:"ipMasq"`
-	MTU         int    `json:"mtu"`
-	HairpinMode bool   `json:"hairpinMode"`
-	PromiscMode bool   `json:"promiscMode"`
+	BrName       string `json:"bridge"`
+	IsGW         bool   `json:"isGateway"`
+	IsDefaultGW  bool   `json:"isDefaultGateway"`
+	ForceAddress bool   `json:"forceAddress"`
+	IPMasq       bool   `json:"ipMasq"`
+	MTU          int    `json:"mtu"`
+	HairpinMode  bool   `json:"hairpinMode"`
+	PromiscMode  bool   `json:"promiscMode"`
 }
 
 type gwInfo struct {
@@ -139,7 +140,7 @@ func calcGateways(result *current.Result, n *NetConf) (*gwInfo, *gwInfo, error) 
 	return gwsV4, gwsV6, nil
 }
 
-func ensureBridgeAddr(br *netlink.Bridge, family int, ipn *net.IPNet) error {
+func ensureBridgeAddr(br *netlink.Bridge, family int, ipn *net.IPNet, forceAddress bool) error {
 	addrs, err := netlink.AddrList(br, family)
 	if err != nil && err != syscall.ENOENT {
 		return fmt.Errorf("could not get list of IP addresses: %v", err)
@@ -158,8 +159,13 @@ func ensureBridgeAddr(br *netlink.Bridge, family int, ipn *net.IPNet) error {
 		// overlapping IPv6 subnets, reconfigure the IP address if
 		// forceAddress is true, otherwise throw an error.
 		if family == netlink.FAMILY_V4 || a.IPNet.Contains(ipn.IP) || ipn.Contains(a.IPNet.IP) {
-			// We don't use forceAddress
-			return fmt.Errorf("%q already has an IP address different from %v", br.Name, ipnStr)
+			if forceAddress {
+				if err = deleteBridgeAddr(br, a.IPNet); err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("%q already has an IP address different from %v", br.Name, ipnStr)
+			}
 		}
 	}
 
@@ -496,5 +502,5 @@ func cmdDel(args *skel.CmdArgs) error {
 }
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdDel, version.All)
+	skel.PluginMain(cmdAdd, cmdAdd, cmdDel, version.All)
 }
