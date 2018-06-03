@@ -1,0 +1,131 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "xfbSHE1o4bpf2Ei6bLf60N7iR9Q=",
+			"path": "github.com/containernetworking/cni/pkg/invoke",
+			"revision": "86431d5c16064ec0ce3c215297f5bbf7112fbbde",
+			"revisionTime": "2018-05-31T18:41:59Z"
+		},
+		{
+			"checksumSHA1": "/C30MeCIENizurHi2qd6BVw7GvI=",
+			"path": "github.com/containernetworking/cni/pkg/skel",
+			"revision": "85488fbd8d4e77e51a0e063cf71f5b4ec9349475",
+			"revisionTime": "2018-05-23T15:22:32Z"
+		},
+		{
+			"checksumSHA1": "kyeaxrxhMl3XETXxYfjP5dUeMYY=",
+			"path": "github.com/containernetworking/cni/pkg/types",
+			"revision": "85488fbd8d4e77e51a0e063cf71f5b4ec9349475",
+			"revisionTime": "2018-05-23T15:22:32Z"
+		},
+		{
+			"checksumSHA1": "lmLYXYR/twmBu+6U678QNF+BQlQ=",
+			"path": "github.com/containernetworking/cni/pkg/types/020",
+			"revision": "85488fbd8d4e77e51a0e063cf71f5b4ec9349475",
+			"revisionTime": "2018-05-23T15:22:32Z"
+		},
+		{
+			"checksumSHA1": "pvYIWkqkUeXBuO38Um+v9lQ882M=",
+			"path": "github.com/containernetworking/cni/pkg/types/current",
+			"revision": "85488fbd8d4e77e51a0e063cf71f5b4ec9349475",
+			"revisionTime": "2018-05-23T15:22:32Z"
+		},
+		{
+			"checksumSHA1": "HPTtMjgVZDO6r4AdtKHP45m1z48=",
+			"path": "github.com/containernetworking/cni/pkg/version",
+			"revision": "85488fbd8d4e77e51a0e063cf71f5b4ec9349475",
+			"revisionTime": "2018-05-23T15:22:32Z"
+		},
+		{
+			"path": "github.com/containernetworking/j-keck/arping",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "HIqb5xEnPDtl4K7L3sIthTnXCsg=",
+			"path": "github.com/containernetworking/plugins",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "sHP4Pnt1kftYMGDZttlz3bvFK2k=",
+			"path": "github.com/containernetworking/plugins/pkg/ip",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "s/z1JO9VhL/ftdsZfkg24vxZJvM=",
+			"path": "github.com/containernetworking/plugins/pkg/ipam",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "ZM0SnLIE5+Clczod2Md8mVGMz/M=",
+			"path": "github.com/containernetworking/plugins/pkg/ns",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "909B5R5pbQLe7y6cgMlr8d0aLO0=",
+			"path": "github.com/containernetworking/plugins/pkg/utils",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "rUAk+nce6eDIWtYo/QYIoqlTfrY=",
+			"path": "github.com/containernetworking/plugins/pkg/utils/hwaddr",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "eVojiWsh48y175NN7Newtb9lmxQ=",
+			"path": "github.com/containernetworking/plugins/pkg/utils/sysctl",
+			"revision": "1d973f59d2a546a77994b1a17e537757dc0acb85",
+			"revisionTime": "2018-05-16T15:54:47Z"
+		},
+		{
+			"checksumSHA1": "XThyw/FZ+eIbebe6zQrpJuIxHgw=",
+			"path": "github.com/coreos/go-iptables/iptables",
+			"revision": "b5b1876b170881a8259f036445ee89c8669db386",
+			"revisionTime": "2018-02-21T14:29:34Z"
+		},
+		{
+			"checksumSHA1": "p6Lp0JStM2aO1Jns3ZHixwpVXLY=",
+			"path": "github.com/j-keck/arping",
+			"revision": "2cf9dc699c5640a7e2c81403a44127bf28033600",
+			"revisionTime": "2016-06-18T11:04:41Z"
+		},
+		{
+			"checksumSHA1": "7Fqh2nZs8wQCD0AYGsqfLodWHAk=",
+			"path": "github.com/safchain/ethtool",
+			"revision": "6e3f4faa84e1d8d48afec75ed064cf3611d3f8bf",
+			"revisionTime": "2018-05-04T15:00:54Z"
+		},
+		{
+			"checksumSHA1": "sZaLgMMf+AKwGE8mMvwdDCpHsQA=",
+			"path": "github.com/vishvananda/netlink",
+			"revision": "7c0b5944a3036fc8dc9f4cbf2f5c76dedd29af8b",
+			"revisionTime": "2018-04-08T13:56:38Z"
+		},
+		{
+			"checksumSHA1": "wN69Ln5aaBlq9NHYjowdyOAhbTQ=",
+			"path": "github.com/vishvananda/netlink/nl",
+			"revision": "7c0b5944a3036fc8dc9f4cbf2f5c76dedd29af8b",
+			"revisionTime": "2018-04-08T13:56:38Z"
+		},
+		{
+			"checksumSHA1": "qf37dJzNS2iXycH62ukEw+cleZY=",
+			"path": "github.com/vishvananda/netns",
+			"revision": "be1fbeda19366dea804f00efff2dd73a1642fdcc",
+			"revisionTime": "2017-11-10T22:28:10Z"
+		},
+		{
+			"checksumSHA1": "VUb+SqeoloAw1A2Jz9IzkDNs06c=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "c11f84a56e43e20a78cee75a7c034031ecf57d1f",
+			"revisionTime": "2018-05-25T13:55:20Z"
+		}
+	],
+	"rootPath": "bridge-static-cni"
+}
