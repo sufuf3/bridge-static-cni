@@ -51,7 +51,8 @@ type Address struct {
 }
 
 func main() {
-	skel.PluginMain(cmdAdd, cmdDel, version.All)
+	//skel.PluginMain(cmdAdd, cmdDel, version.All)
+	skel.PluginMain(cmdAdd, cmdDel, version.PluginSupports("0.3.0", "0.3.1", version.Current()))
 }
 
 // canonicalizeIP makes sure a provided ip is in standard form
